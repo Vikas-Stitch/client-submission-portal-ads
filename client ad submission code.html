@@ -1,0 +1,2164 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Campaign Submission Portal</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- React 18 + ReactDOM + Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0066FF;
+            --primary-hover: #0052cc;
+            --primary-light: #e8f0fe;
+            --bg: #f4f6f9;
+            --card: #ffffff;
+            --border: #e0e0e0;
+            --error: #e53935;
+            --success: #2e7d32;
+            --warning: #f57c00;
+            --text: #1a1a1a;
+            --text-secondary: #666666;
+            --section-bg: #f9f9f9;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--primary);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Page Layout */
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .form-card {
+            max-width: 700px;
+            width: 100%;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+            padding: 40px;
+        }
+        
+        @media (max-width: 600px) {
+            .form-card {
+                padding: 24px 16px;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            .page-container {
+                padding: 0;
+            }
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .step-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        
+        .step-circle.pending {
+            background: #e0e0e0;
+            color: var(--text-secondary);
+        }
+        
+        .step-circle.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .step-circle.completed {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+        
+        .step-label.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .step-label.completed {
+            color: var(--text);
+        }
+        
+        .step-connector {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            margin: 0 8px;
+            min-width: 20px;
+            transition: all 0.2s ease;
+        }
+        
+        .step-connector.completed {
+            background: var(--primary);
+        }
+        
+        @media (max-width: 600px) {
+            .step-label {
+                display: none;
+            }
+            
+            .progress-step {
+                justify-content: center;
+            }
+        }
+        
+        /* Typography */
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .subheading {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+        
+        .required::after {
+            content: " *";
+            color: var(--error);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            height: 44px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 0 12px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        textarea {
+            height: auto;
+            min-height: 100px;
+            padding: 12px;
+            resize: vertical;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,102,255,0.12);
+            outline: none;
+        }
+        
+        .error input, .error select, .error textarea {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(229,57,53,0.1);
+        }
+        
+        .error-message {
+            font-size: 12px;
+            color: var(--error);
+            margin-top: 4px;
+        }
+        
+        .input-prefix-wrapper {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        
+        .input-prefix-wrapper:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,102,255,0.12);
+        }
+        
+        .input-prefix-wrapper.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(229,57,53,0.1);
+        }
+        
+        .input-prefix {
+            padding: 0 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            background: var(--section-bg);
+            height: 42px;
+            display: flex;
+            align-items: center;
+            border-right: 1px solid var(--border);
+        }
+        
+        .input-prefix-wrapper input {
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+        }
+        
+        .input-prefix-wrapper input:focus {
+            box-shadow: none;
+        }
+        
+        /* Grid Layout */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            height: 44px;
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            font-size: 14px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--section-bg);
+        }
+        
+        .btn-full {
+            width: 100%;
+            height: 48px;
+            font-size: 15px;
+        }
+        
+        /* Section Cards */
+        .section-card {
+            background: var(--section-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .section-card h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .section-instruction {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .add-link {
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 12px;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+        
+        .add-link:hover {
+            text-decoration: underline;
+        }
+        
+        .remove-link {
+            color: var(--error);
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+        
+        .field-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .field-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        /* Character Counter */
+        .char-counter {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            text-align: right;
+        }
+        
+        .char-counter.warning {
+            color: var(--warning);
+        }
+        
+        .char-counter.error {
+            color: var(--error);
+        }
+        
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: var(--section-bg);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        
+        .upload-icon {
+            margin-bottom: 12px;
+        }
+        
+        .upload-text {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .upload-subtext {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        /* File Cards */
+        .file-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+        
+        .file-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .file-thumbnail {
+            width: 80px;
+            height: 80px;
+            border-radius: 4px;
+            object-fit: cover;
+            background: var(--section-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .file-thumbnail.video {
+            background: #333;
+        }
+        
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        
+        .btn-remove {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--error);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .btn-remove:hover {
+            opacity: 0.9;
+        }
+        
+        .file-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        @media (max-width: 600px) {
+            .file-fields {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Format Info */
+        .format-info {
+            background: var(--primary-light);
+            border-left: 3px solid var(--primary);
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 12px;
+            margin-top: 8px;
+            color: var(--text);
+        }
+        
+        /* Review Section */
+        .review-section {
+            position: relative;
+        }
+        
+        .review-edit {
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+        
+        .review-edit:hover {
+            text-decoration: underline;
+        }
+        
+        .review-row {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .review-row:last-child {
+            border-bottom: none;
+        }
+        
+        .review-label {
+            font-weight: 600;
+            width: 160px;
+            flex-shrink: 0;
+            font-size: 13px;
+        }
+        
+        .review-value {
+            flex: 1;
+            font-size: 13px;
+            word-break: break-word;
+        }
+        
+        .copy-item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .copy-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .copy-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .copy-text {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .copy-count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            background: var(--section-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .asset-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .asset-row:last-child {
+            border-bottom: none;
+        }
+        
+        .asset-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            object-fit: cover;
+            background: var(--section-bg);
+            flex-shrink: 0;
+        }
+        
+        .asset-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .asset-name {
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .asset-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 24px 0;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: var(--primary);
+        }
+        
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-weight: 400;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* Error Banner */
+        .error-banner {
+            background: #fdecea;
+            border-left: 4px solid var(--error);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .error-banner-text {
+            color: var(--error);
+            font-size: 14px;
+        }
+        
+        .btn-dismiss {
+            background: none;
+            border: none;
+            color: var(--error);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 4px;
+        }
+        
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.95);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+        
+        .overlay-text {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+        
+        /* Success Screen */
+        .success-screen {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 24px;
+        }
+        
+        .success-heading {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .success-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        /* Centered States */
+        .centered-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .logo-placeholder {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .invalid-heading {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .invalid-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 400px;
+        }
+        
+        /* Toast */
+        .toast {
+            background: var(--error);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // SVG Icons
+        const CheckmarkIcon = () => (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+        );
+        
+        const CloudUploadIcon = () => (
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style={{color: 'var(--text-secondary)'}}>
+                <path d="M40 28C42.2091 28 44 26.2091 44 24C44 21.7909 42.2091 20 40 20H38.5C38.5 14.4772 34.0228 10 28.5 10C24.4633 10 20.9798 12.4333 19.4623 15.9785C18.9789 15.8261 18.4622 15.7442 17.9268 15.7442C15.1886 15.7442 12.969 17.9638 12.969 20.702C12.969 20.7746 12.9715 20.8467 12.9764 20.9183C9.71494 21.8487 7.33331 24.7794 7.33331 28.2222C7.33331 32.4716 10.775 35.9133 15.0244 35.9133H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M24 26V38M24 26L20 30M24 26L28 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+        );
+        
+        const VideoIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{color: 'white'}}>
+                <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <path d="M10 10L15 12L10 14V10Z" fill="currentColor"/>
+            </svg>
+        );
+        
+        const CloseIcon = () => (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 12L12 4M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+        );
+        
+        const SuccessCheckIcon = () => (
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="30" stroke="#2e7d32" strokeWidth="2"/>
+                <path d="M20 32L28 40L44 24" stroke="#2e7d32" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+        );
+        
+        // Format specifications
+        const FORMAT_SPECS = {
+            'Feed 1:1': '1080×1080px · JPG/PNG/MP4 · Max 30MB · Keep key content within centre 80% of frame',
+            'Feed 4:5': '1080×1350px · JPG/PNG/MP4 · Max 30MB · Keep key content within centre 80% of frame',
+            'Story / Reel 9:16': '1080×1920px · JPG/PNG/MP4/MOV · Max 4GB · Avoid top 14% and bottom 20% for safe zone',
+            'Carousel 1:1': '1080×1080px · JPG/PNG · Max 30MB per card · Keep key content within centre 80% of frame',
+            'In-Feed 9:16': '1080×1920px · MP4/MOV · 9:16 ratio · Avoid top 13% and bottom 13% for safe zone',
+            'Leaderboard': '728×90px · JPG/PNG/GIF · Max 200KB',
+            'Medium Rectangle': '300×250px · JPG/PNG/GIF · Max 200KB',
+            'Wide Skyscraper': '160×600px · JPG/PNG/GIF · Max 200KB'
+        };
+        
+        const PLATFORM_FORMATS = {
+            'Meta': [
+                'Feed 1:1',
+                'Feed 4:5',
+                'Story / Reel 9:16',
+                'Carousel 1:1'
+            ],
+            'TikTok': [
+                'In-Feed 9:16'
+            ],
+            'StackAdapt': [
+                'Leaderboard',
+                'Medium Rectangle',
+                'Wide Skyscraper'
+            ]
+        };
+        
+        const CTA_OPTIONS = [
+            'Learn More',
+            'Get Tickets Now',
+            'Sign Up',
+            'Shop Now',
+            'Contact Us',
+            'Download',
+            'Book Now'
+        ];
+        
+        const PLATFORM_OPTIONS = ['Meta', 'TikTok', 'StackAdapt'];
+        
+        // Character limits
+        const LIMITS = {
+            primary_text: 125,
+            headline: 25,
+            link_description: 30,
+            ad_text: 100,
+            display_name: 25,
+            sa_headline: 90,
+            sa_body: 150
+        };
+        
+        function App() {
+            // Token and auth state
+            const [token, setToken] = useState('');
+            const [clientName, setClientName] = useState('');
+            const [amEmail, setAmEmail] = useState('');
+            const [authState, setAuthState] = useState('loading');
+            
+            // Form state
+            const [currentStep, setCurrentStep] = useState(1);
+            const [errors, setErrors] = useState({});
+            const [submitting, setSubmitting] = useState(false);
+            const [submitted, setSubmitted] = useState(false);
+            const [submitError, setSubmitError] = useState(null);
+            const [uploadError, setUploadError] = useState(null);
+            
+            // Form data
+            const [formData, setFormData] = useState({
+                name: '',
+                email: '',
+                campaignName: '',
+                platform: '',
+                startDate: '',
+                endDate: '',
+                budget: '',
+                destinationUrl: '',
+                cta: '',
+                copy: {
+                    primary_text_1: '',
+                    primary_text_2: '',
+                    primary_text_3: '',
+                    primary_text_4: '',
+                    primary_text_5: '',
+                    headline_1: '',
+                    headline_2: '',
+                    headline_3: '',
+                    headline_4: '',
+                    headline_5: '',
+                    link_description: '',
+                    ad_text_1: '',
+                    ad_text_2: '',
+                    ad_text_3: '',
+                    display_name: '',
+                    sa_headline_1: '',
+                    sa_headline_2: '',
+                    sa_headline_3: '',
+                    sa_body_1: '',
+                    sa_body_2: '',
+                    sa_body_3: ''
+                },
+                files: []
+            });
+            
+            // Visible fields state for progressive disclosure
+            const [visibleFields, setVisibleFields] = useState({
+                primary_text: 1,
+                headline: 1,
+                ad_text: 1,
+                sa_headline: 1,
+                sa_body: 1
+            });
+            
+            const fileInputRef = useRef(null);
+            const firstInputRef = useRef(null);
+            
+            // Token validation on mount
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                const urlToken = params.get('token');
+                
+                if (!urlToken) {
+                    setAuthState('invalid');
+                    return;
+                }
+                
+                setToken(urlToken);
+                
+                // Simulate API call for token validation
+                fetch(`https://REPLACE_N8N_BASE_URL/webhook/validate-token?token=${urlToken}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.valid) {
+                            setClientName(data.client_name || '');
+                            setAmEmail(data.am_email || '');
+                            setAuthState('valid');
+                        } else {
+                            setAuthState('invalid');
+                        }
+                    })
+                    .catch(() => {
+                        // For demo purposes, accept any token
+                        setAuthState('valid');
+                    });
+            }, []);
+            
+            // Focus management on step change
+            useEffect(() => {
+                if (firstInputRef.current && authState === 'valid') {
+                    firstInputRef.current.focus();
+                }
+                // Scroll to top of card
+                const card = document.querySelector('.form-card');
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, [currentStep, authState]);
+            
+            const updateFormData = (field, value) => {
+                setFormData(prev => ({ ...prev, [field]: value }));
+                // Clear error when field is edited
+                if (errors[field]) {
+                    setErrors(prev => ({ ...prev, [field]: null }));
+                }
+            };
+            
+            const updateCopyData = (field, value) => {
+                setFormData(prev => ({
+                    ...prev,
+                    copy: { ...prev.copy, [field]: value }
+                }));
+                if (errors[field]) {
+                    setErrors(prev => ({ ...prev, [field]: null }));
+                }
+            };
+            
+            const addField = (type) => {
+                setVisibleFields(prev => ({
+                    ...prev,
+                    [type]: prev[type] + 1
+                }));
+            };
+            
+            const removeField = (type, index) => {
+                const fieldKey = `${type}_${index}`;
+                setFormData(prev => ({
+                    ...prev,
+                    copy: { ...prev.copy, [fieldKey]: '' }
+                }));
+                // Shift subsequent fields down
+                const maxFields = visibleFields[type];
+                for (let i = index; i < maxFields; i++) {
+                    const nextKey = `${type}_${i + 1}`;
+                    const currentKey = `${type}_${i}`;
+                    setFormData(prev => ({
+                        ...prev,
+                        copy: { ...prev.copy, [currentKey]: prev.copy[nextKey] || '' }
+                    }));
+                }
+                setVisibleFields(prev => ({
+                    ...prev,
+                    [type]: prev[type] - 1
+                }));
+            };
+            
+            const validateStep1 = () => {
+                const newErrors = {};
+                
+                if (!formData.name.trim()) newErrors.name = 'Name is required';
+                if (!formData.email.trim()) {
+                    newErrors.email = 'Email is required';
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+                    newErrors.email = 'Please enter a valid email';
+                }
+                
+                if (!formData.campaignName.trim()) newErrors.campaignName = 'Campaign name is required';
+                if (!formData.platform) newErrors.platform = 'Platform is required';
+                if (!formData.startDate) newErrors.startDate = 'Start date is required';
+                if (!formData.endDate) newErrors.endDate = 'End date is required';
+                
+                if (formData.startDate && formData.endDate && formData.startDate >= formData.endDate) {
+                    newErrors.endDate = 'End date must be after start date';
+                }
+                
+                if (!formData.budget) {
+                    newErrors.budget = 'Budget is required';
+                } else if (parseFloat(formData.budget) <= 0) {
+                    newErrors.budget = 'Budget must be greater than 0';
+                }
+                
+                if (!formData.destinationUrl.trim()) {
+                    newErrors.destinationUrl = 'Destination URL is required';
+                } else if (!/^https?:\/\//.test(formData.destinationUrl)) {
+                    newErrors.destinationUrl = 'Please enter a valid URL starting with http:// or https://';
+                }
+                
+                if (!formData.cta) newErrors.cta = 'CTA is required';
+                
+                setErrors(newErrors);
+                
+                if (Object.keys(newErrors).length > 0) {
+                    // Scroll to first error
+                    const firstErrorField = Object.keys(newErrors)[0];
+                    const element = document.querySelector(`[name="${firstErrorField}"]`);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return false;
+                }
+                
+                return true;
+            };
+            
+            const validateStep2 = () => {
+                const newErrors = {};
+                const platform = formData.platform;
+                
+                if (platform === 'Meta') {
+                    if (!formData.copy.primary_text_1.trim()) {
+                        newErrors.primary_text_1 = 'At least one primary text is required';
+                    }
+                    if (formData.copy.primary_text_1.length > LIMITS.primary_text) {
+                        newErrors.primary_text_1 = `Exceeds ${LIMITS.primary_text} character limit`;
+                    }
+                    
+                    if (!formData.copy.headline_1.trim()) {
+                        newErrors.headline_1 = 'At least one headline is required';
+                    }
+                    if (formData.copy.headline_1.length > LIMITS.headline) {
+                        newErrors.headline_1 = `Exceeds ${LIMITS.headline} character limit`;
+                    }
+                    
+                    if (formData.copy.link_description.length > LIMITS.link_description) {
+                        newErrors.link_description = `Exceeds ${LIMITS.link_description} character limit`;
+                    }
+                } else if (platform === 'TikTok') {
+                    if (!formData.copy.ad_text_1.trim()) {
+                        newErrors.ad_text_1 = 'At least one ad text is required';
+                    }
+                    if (formData.copy.ad_text_1.length > LIMITS.ad_text) {
+                        newErrors.ad_text_1 = `Exceeds ${LIMITS.ad_text} character limit`;
+                    }
+                    
+                    if (formData.copy.display_name.length > LIMITS.display_name) {
+                        newErrors.display_name = `Exceeds ${LIMITS.display_name} character limit`;
+                    }
+                } else if (platform === 'StackAdapt') {
+                    if (!formData.copy.sa_headline_1.trim()) {
+                        newErrors.sa_headline_1 = 'At least one headline is required';
+                    }
+                    if (formData.copy.sa_headline_1.length > LIMITS.sa_headline) {
+                        newErrors.sa_headline_1 = `Exceeds ${LIMITS.sa_headline} character limit`;
+                    }
+                    
+                    if (!formData.copy.sa_body_1.trim()) {
+                        newErrors.sa_body_1 = 'At least one body text is required';
+                    }
+                    if (formData.copy.sa_body_1.length > LIMITS.sa_body) {
+                        newErrors.sa_body_1 = `Exceeds ${LIMITS.sa_body} character limit`;
+                    }
+                }
+                
+                // Check all visible fields for length violations
+                for (let i = 1; i <= visibleFields.primary_text; i++) {
+                    const key = `primary_text_${i}`;
+                    if (formData.copy[key] && formData.copy[key].length > LIMITS.primary_text) {
+                        newErrors[key] = `Exceeds ${LIMITS.primary_text} character limit`;
+                    }
+                }
+                
+                for (let i = 1; i <= visibleFields.headline; i++) {
+                    const key = `headline_${i}`;
+                    if (formData.copy[key] && formData.copy[key].length > LIMITS.headline) {
+                        newErrors[key] = `Exceeds ${LIMITS.headline} character limit`;
+                    }
+                }
+                
+                for (let i = 1; i <= visibleFields.ad_text; i++) {
+                    const key = `ad_text_${i}`;
+                    if (formData.copy[key] && formData.copy[key].length > LIMITS.ad_text) {
+                        newErrors[key] = `Exceeds ${LIMITS.ad_text} character limit`;
+                    }
+                }
+                
+                for (let i = 1; i <= visibleFields.sa_headline; i++) {
+                    const key = `sa_headline_${i}`;
+                    if (formData.copy[key] && formData.copy[key].length > LIMITS.sa_headline) {
+                        newErrors[key] = `Exceeds ${LIMITS.sa_headline} character limit`;
+                    }
+                }
+                
+                for (let i = 1; i <= visibleFields.sa_body; i++) {
+                    const key = `sa_body_${i}`;
+                    if (formData.copy[key] && formData.copy[key].length > LIMITS.sa_body) {
+                        newErrors[key] = `Exceeds ${LIMITS.sa_body} character limit`;
+                    }
+                }
+                
+                setErrors(newErrors);
+                return Object.keys(newErrors).length === 0;
+            };
+            
+            const validateStep3 = () => {
+                const newErrors = {};
+                
+                if (formData.files.length === 0) {
+                    newErrors.files = 'At least one file is required';
+                } else {
+                    formData.files.forEach((file, index) => {
+                        if (!file.adset.trim()) {
+                            newErrors[`file_${index}_adset`] = 'Ad set name is required';
+                        }
+                        if (!file.format) {
+                            newErrors[`file_${index}_format`] = 'Format is required';
+                        }
+                    });
+                }
+                
+                setErrors(newErrors);
+                return Object.keys(newErrors).length === 0;
+            };
+            
+            const handleNext = () => {
+                let isValid = false;
+                
+                if (currentStep === 1) isValid = validateStep1();
+                else if (currentStep === 2) isValid = validateStep2();
+                else if (currentStep === 3) isValid = validateStep3();
+                
+                if (isValid) {
+                    setCurrentStep(prev => prev + 1);
+                }
+            };
+            
+            const handleBack = () => {
+                setCurrentStep(prev => prev - 1);
+            };
+            
+            const handleFileSelect = (e) => {
+                const files = Array.from(e.target.files);
+                processFiles(files);
+            };
+            
+            const processFiles = (files) => {
+                setUploadError(null);
+                const validFiles = [];
+                const maxSize = 100 * 1024 * 1024; // 100MB
+                
+                files.forEach(file => {
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'];
+                    if (!validTypes.includes(file.type)) {
+                        setUploadError(`Invalid file type: ${file.name}. Accepted: JPG, PNG, GIF, MP4, MOV`);
+                        return;
+                    }
+                    
+                    if (file.size > maxSize) {
+                        setUploadError(`File too large: ${file.name}. Max 100MB`);
+                        return;
+                    }
+                    
+                    validFiles.push(file);
+                });
+                
+                validFiles.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        setFormData(prev => ({
+                            ...prev,
+                            files: [...prev.files, {
+                                file: file,
+                                preview: e.target.result,
+                                adset: '',
+                                format: ''
+                            }]
+                        }));
+                    };
+                    reader.readAsDataURL(file);
+                });
+            };
+            
+            const handleDrop = (e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('dragover');
+                const files = Array.from(e.dataTransfer.files);
+                processFiles(files);
+            };
+            
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.currentTarget.classList.add('dragover');
+            };
+            
+            const handleDragLeave = (e) => {
+                e.currentTarget.classList.remove('dragover');
+            };
+            
+            const removeFile = (index) => {
+                setFormData(prev => ({
+                    ...prev,
+                    files: prev.files.filter((_, i) => i !== index)
+                }));
+                // Clear related errors
+                const newErrors = { ...errors };
+                delete newErrors[`file_${index}_adset`];
+                delete newErrors[`file_${index}_format`];
+                setErrors(newErrors);
+            };
+            
+            const updateFileField = (index, field, value) => {
+                setFormData(prev => ({
+                    ...prev,
+                    files: prev.files.map((f, i) => 
+                        i === index ? { ...f, [field]: value } : f
+                    )
+                }));
+                if (errors[`file_${index}_${field}`]) {
+                    setErrors(prev => ({ ...prev, [`file_${index}_${field}`]: null }));
+                }
+            };
+            
+            const handleSubmit = async () => {
+                setSubmitting(true);
+                setSubmitError(null);
+                
+                try {
+                    // Convert files to base64
+                    const filesWithBase64 = await Promise.all(
+                        formData.files.map(async (fileObj) => {
+                            return new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    const base64 = e.target.result.split(',')[1];
+                                    resolve({
+                                        filename: fileObj.file.name,
+                                        base64: base64,
+                                        filetype: fileObj.file.type,
+                                        filesize: fileObj.file.size.toString(),
+                                        adset: fileObj.adset,
+                                        format: fileObj.format
+                                    });
+                                };
+                                reader.readAsDataURL(fileObj.file);
+                            });
+                        })
+                    );
+                    
+                    // Build payload
+                    const payload = {
+                        token: token,
+                        submitted_by: formData.name,
+                        submitted_email: formData.email,
+                        campaign_name: formData.campaignName,
+                        platform: formData.platform,
+                        start_date: formData.startDate,
+                        end_date: formData.endDate,
+                        budget: formData.budget,
+                        destination_url: formData.destinationUrl,
+                        cta: formData.cta,
+                        copy: {},
+                        files: filesWithBase64
+                    };
+                    
+                    // Add platform-specific copy
+                    if (formData.platform === 'Meta') {
+                        for (let i = 1; i <= visibleFields.primary_text; i++) {
+                            const val = formData.copy[`primary_text_${i}`];
+                            if (val) payload.copy[`primary_text_${i}`] = val;
+                        }
+                        for (let i = 1; i <= visibleFields.headline; i++) {
+                            const val = formData.copy[`headline_${i}`];
+                            if (val) payload.copy[`headline_${i}`] = val;
+                        }
+                        if (formData.copy.link_description) {
+                            payload.copy.link_description = formData.copy.link_description;
+                        }
+                    } else if (formData.platform === 'TikTok') {
+                        for (let i = 1; i <= visibleFields.ad_text; i++) {
+                            const val = formData.copy[`ad_text_${i}`];
+                            if (val) payload.copy[`ad_text_${i}`] = val;
+                        }
+                        if (formData.copy.display_name) {
+                            payload.copy.display_name = formData.copy.display_name;
+                        }
+                    } else if (formData.platform === 'StackAdapt') {
+                        for (let i = 1; i <= visibleFields.sa_headline; i++) {
+                            const val = formData.copy[`sa_headline_${i}`];
+                            if (val) payload.copy[`headline_${i}`] = val;
+                        }
+                        for (let i = 1; i <= visibleFields.sa_body; i++) {
+                            const val = formData.copy[`sa_body_${i}`];
+                            if (val) payload.copy[`body_text_${i}`] = val;
+                        }
+                    }
+                    
+                    const response = await fetch('https://REPLACE_N8N_BASE_URL/webhook/ad-submission', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        setSubmitted(true);
+                    } else {
+                        throw new Error('Submission failed');
+                    }
+                } catch (error) {
+                    setSubmitError('Something went wrong while submitting. Please try again or contact your account manager.');
+                } finally {
+                    setSubmitting(false);
+                }
+            };
+            
+            const renderProgressBar = () => {
+                const steps = ['Campaign Details', 'Copy & Messaging', 'Creative Upload', 'Review & Submit'];
+                
+                return (
+                    <div className="progress-bar">
+                        {steps.map((step, index) => {
+                            const stepNum = index + 1;
+                            const isActive = currentStep === stepNum;
+                            const isCompleted = currentStep > stepNum;
+                            const isLast = index === steps.length - 1;
+                            
+                            return (
+                                <React.Fragment key={step}>
+                                    <div className="progress-step">
+                                        <div className={`step-circle ${isActive ? 'active' : isCompleted ? 'completed' : 'pending'}`}>
+                                            {isCompleted ? <CheckmarkIcon /> : stepNum}
+                                        </div>
+                                        <span className={`step-label ${isActive ? 'active' : isCompleted ? 'completed' : ''}`}>
+                                            {step}
+                                        </span>
+                                    </div>
+                                    {!isLast && (
+                                        <div className={`step-connector ${isCompleted ? 'completed' : ''}`} />
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
+                    </div>
+                );
+            };
+            
+            const renderCharacterCounter = (current, max) => {
+                const remaining = max - current;
+                let className = 'char-counter';
+                if (remaining < 0) className += ' error';
+                else if (remaining <= 10) className += ' warning';
+                
+                return (
+                    <div className={className}>
+                        {remaining} / {max} characters remaining
+                    </div>
+                );
+            };
+            
+            const renderStep1 = () => (
+                <div>
+                    <h2>Campaign Details</h2>
+                    <p className="subheading">Tell us about the campaign you're submitting for.</p>
+                    
+                    <div className="form-group">
+                        <label className="required">Your Name</label>
+                        <input
+                            ref={firstInputRef}
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={(e) => updateFormData('name', e.target.value)}
+                            placeholder="First and last name"
+                            className={errors.name ? 'error' : ''}
+                        />
+                        {errors.name && <div className="error-message">{errors.name}</div>}
+                    </div>
+                    
+                    <div className="form-group">
+                        <label className="required">Your Email</label>
+                        <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={(e) => updateFormData('email', e.target.value)}
+                            placeholder="your@email.com"
+                            className={errors.email ? 'error' : ''}
+                        />
+                        {errors.email && <div className="error-message">{errors.email}</div>}
+                    </div>
+                    
+                    <div className="form-group">
+                        <label className="required">Campaign Name</label>
+                        <input
+                            type="text"
+                            name="campaignName"
+                            value={formData.campaignName}
+                            onChange={(e) => updateFormData('campaignName', e.target.value)}
+                            placeholder="e.g. Summer Lottery 2025"
+                            className={errors.campaignName ? 'error' : ''}
+                        />
+                        {errors.campaignName && <div className="error-message">{errors.campaignName}</div>}
+                    </div>
+                    
+                    <div className="form-group">
+                        <label className="required">Platform</label>
+                        <select
+                            name="platform"
+                            value={formData.platform}
+                            onChange={(e) => updateFormData('platform', e.target.value)}
+                            className={errors.platform ? 'error' : ''}
+                        >
+                            <option value="">Select a platform</option>
+                            {PLATFORM_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                        {errors.platform && <div className="error-message">{errors.platform}</div>}
+                    </div>
+                    
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label className="required">Start Date</label>
+                            <input
+                                type="date"
+                                name="startDate"
+                                value={formData.startDate}
+                                onChange={(e) => updateFormData('startDate', e.target.value)}
+                                className={errors.startDate ? 'error' : ''}
+                            />
+                            {errors.startDate && <div className="error-message">{errors.startDate}</div>}
+                        </div>
+                        
+                        <div className="form-group">
+                            <label className="required">End Date</label>
+                            <input
+                                type="date"
+                                name="endDate"
+                                value={formData.endDate}
+                                onChange={(e) => updateFormData('endDate', e.target.value)}
+                                className={errors.endDate ? 'error' : ''}
+                            />
+                            {errors.endDate && <div className="error-message">{errors.endDate}</div>}
+                        </div>
+                    </div>
+                    
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label className="required">Total Budget (NZD)</label>
+                            <div className={`input-prefix-wrapper ${errors.budget ? 'error' : ''}`}>
+                                <span className="input-prefix">NZD $</span>
+                                <input
+                                    type="number"
+                                    name="budget"
+                                    min="0"
+                                    step="0.01"
+                                    value={formData.budget}
+                                    onChange={(e) => updateFormData('budget', e.target.value)}
+                                    style={{ border: 'none', boxShadow: 'none' }}
+                                />
+                            </div>
+                            {errors.budget && <div className="error-message">{errors.budget}</div>}
+                        </div>
+                        
+                        <div className="form-group">
+                            <label className="required">CTA Button</label>
+                            <select
+                                name="cta"
+                                value={formData.cta}
+                                onChange={(e) => updateFormData('cta', e.target.value)}
+                                className={errors.cta ? 'error' : ''}
+                            >
+                                <option value="">Select CTA</option>
+                                {CTA_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            {errors.cta && <div className="error-message">{errors.cta}</div>}
+                        </div>
+                    </div>
+                    
+                    <div className="form-group">
+                        <label className="required">Destination URL</label>
+                        <input
+                            type="text"
+                            name="destinationUrl"
+                            value={formData.destinationUrl}
+                            onChange={(e) => updateFormData('destinationUrl', e.target.value)}
+                            placeholder="https://"
+                            className={errors.destinationUrl ? 'error' : ''}
+                        />
+                        {errors.destinationUrl && <div className="error-message">{errors.destinationUrl}</div>}
+                    </div>
+                    
+                    <div className="button-group">
+                        <button className="btn btn-primary" onClick={handleNext}>Next</button>
+                    </div>
+                </div>
+            );
+            
+            const renderMetaCopy = () => (
+                <>
+                    <div className="section-card">
+                        <h3>Primary Text</h3>
+                        <p className="section-instruction">Up to 5 options. At least 1 required. Max {LIMITS.primary_text} characters each.</p>
+                        
+                        {[...Array(visibleFields.primary_text)].map((_, i) => {
+                            const index = i + 1;
+                            const fieldKey = `primary_text_${index}`;
+                            return (
+                                <div key={fieldKey} className="field-row">
+                                    <div className={`form-group ${errors[fieldKey] ? 'error' : ''}`}>
+                                        <textarea
+                                            value={formData.copy[fieldKey]}
+                                            onChange={(e) => updateCopyData(fieldKey, e.target.value)}
+                                            placeholder={`Primary Text ${index}`}
+                                            maxLength={LIMITS.primary_text + 50}
+                                        />
+                                        {renderCharacterCounter(formData.copy[fieldKey].length, LIMITS.primary_text)}
+                                        {errors[fieldKey] && <div className="error-message">{errors[fieldKey]}</div>}
+                                    </div>
+                                    {index > 1 && (
+                                        <button 
+                                            className="remove-link" 
+                                            onClick={() => removeField('primary_text', index)}
+                                            aria-label="Remove"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        
+                        {visibleFields.primary_text < 5 && (
+                            <button className="add-link" onClick={() => addField('primary_text')}>
+                                + Add another option
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div className="section-card">
+                        <h3>Headlines</h3>
+                        <p className="section-instruction">Up to 5 options. At least 1 required. Max {LIMITS.headline} characters each.</p>
+                        
+                        {[...Array(visibleFields.headline)].map((_, i) => {
+                            const index = i + 1;
+                            const fieldKey = `headline_${index}`;
+                            return (
+                                <div key={fieldKey} className="field-row">
+                                    <div className={`form-group ${errors[fieldKey] ? 'error' : ''}`}>
+                                        <input
+                                            type="text"
+                                            value={formData.copy[fieldKey]}
+                                            onChange={(e) => updateCopyData(fieldKey, e.target.value)}
+                                            placeholder={`Headline ${index}`}
+                                            maxLength={LIMITS.headline + 20}
+                                        />
+                                        {renderCharacterCounter(formData.copy[fieldKey].length, LIMITS.headline)}
+                                        {errors[fieldKey] && <div className="error-message">{errors[fieldKey]}</div>}
+                                    </div>
+                                    {index > 1 && (
+                                        <button 
+                                            className="remove-link" 
+                                            onClick={() => removeField('headline', index)}
+                                            aria-label="Remove"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        
+                        {visibleFields.headline < 5 && (
+                            <button className="add-link" onClick={() => addField('headline')}>
+                                + Add another option
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div className="section-card">
+                        <h3>Link Description</h3>
+                        <p className="section-instruction">Optional. Max {LIMITS.link_description} characters. Note: this does not always display.</p>
+                        <div className={`form-group ${errors.link_description ? 'error' : ''}`}>
+                            <input
+                                type="text"
+                                value={formData.copy.link_description}
+                                onChange={(e) => updateCopyData('link_description', e.target.value)}
+                                placeholder="Link description"
+                                maxLength={LIMITS.link_description + 10}
+                            />
+                            {renderCharacterCounter(formData.copy.link_description.length, LIMITS.link_description)}
+                            {errors.link_description && <div className="error-message">{errors.link_description}</div>}
+                        </div>
+                    </div>
+                </>
+            );
+            
+            const renderTikTokCopy = () => (
+                <>
+                    <div className="section-card">
+                        <h3>Ad Text</h3>
+                        <p className="section-instruction">Up to 3 options. At least 1 required. Max {LIMITS.ad_text} characters each.</p>
+                        
+                        {[...Array(visibleFields.ad_text)].map((_, i) => {
+                            const index = i + 1;
+                            const fieldKey = `ad_text_${index}`;
+                            return (
+                                <div key={fieldKey} className="field-row">
+                                    <div className={`form-group ${errors[fieldKey] ? 'error' : ''}`}>
+                                        <textarea
+                                            value={formData.copy[fieldKey]}
+                                            onChange={(e) => updateCopyData(fieldKey, e.target.value)}
+                                            placeholder={`Ad Text ${index}`}
+                                            maxLength={LIMITS.ad_text + 30}
+                                        />
+                                        {renderCharacterCounter(formData.copy[fieldKey].length, LIMITS.ad_text)}
+                                        {errors[fieldKey] && <div className="error-message">{errors[fieldKey]}</div>}
+                                    </div>
+                                    {index > 1 && (
+                                        <button 
+                                            className="remove-link" 
+                                            onClick={() => removeField('ad_text', index)}
+                                            aria-label="Remove"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        
+                        {visibleFields.ad_text < 3 && (
+                            <button className="add-link" onClick={() => addField('ad_text')}>
+                                + Add another option
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div className="section-card">
+                        <h3>Display Name</h3>
+                        <div className={`form-group ${errors.display_name ? 'error' : ''}`}>
+                            <input
+                                type="text"
+                                value={formData.copy.display_name}
+                                onChange={(e) => updateCopyData('display_name', e.target.value)}
+                                placeholder="Display name"
+                                maxLength={LIMITS.display_name + 5}
+                            />
+                            {renderCharacterCounter(formData.copy.display_name.length, LIMITS.display_name)}
+                            {errors.display_name && <div className="error-message">{errors.display_name}</div>}
+                        </div>
+                    </div>
+                </>
+            );
+            
+            const renderStackAdaptCopy = () => (
+                <>
+                    <div className="section-card">
+                        <h3>Headlines</h3>
+                        <p className="section-instruction">Up to 3 options. At least 1 required. Max {LIMITS.sa_headline} characters each.</p>
+                        
+                        {[...Array(visibleFields.sa_headline)].map((_, i) => {
+                            const index = i + 1;
+                            const fieldKey = `sa_headline_${index}`;
+                            return (
+                                <div key={fieldKey} className="field-row">
+                                    <div className={`form-group ${errors[fieldKey] ? 'error' : ''}`}>
+                                        <input
+                                            type="text"
+                                            value={formData.copy[fieldKey]}
+                                            onChange={(e) => updateCopyData(fieldKey, e.target.value)}
+                                            placeholder={`Headline ${index}`}
+                                            maxLength={LIMITS.sa_headline + 20}
+                                        />
+                                        {renderCharacterCounter(formData.copy[fieldKey].length, LIMITS.sa_headline)}
+                                        {errors[fieldKey] && <div className="error-message">{errors[fieldKey]}</div>}
+                                    </div>
+                                    {index > 1 && (
+                                        <button 
+                                            className="remove-link" 
+                                            onClick={() => removeField('sa_headline', index)}
+                                            aria-label="Remove"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        
+                        {visibleFields.sa_headline < 3 && (
+                            <button className="add-link" onClick={() => addField('sa_headline')}>
+                                + Add another option
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div className="section-card">
+                        <h3>Body Text</h3>
+                        <p className="section-instruction">Up to 3 options. At least 1 required. Max {LIMITS.sa_body} characters each.</p>
+                        
+                        {[...Array(visibleFields.sa_body)].map((_, i) => {
+                            const index = i + 1;
+                            const fieldKey = `sa_body_${index}`;
+                            return (
+                                <div key={fieldKey} className="field-row">
+                                    <div className={`form-group ${errors[fieldKey] ? 'error' : ''}`}>
+                                        <textarea
+                                            value={formData.copy[fieldKey]}
+                                            onChange={(e) => updateCopyData(fieldKey, e.target.value)}
+                                            placeholder={`Body Text ${index}`}
+                                            maxLength={LIMITS.sa_body + 30}
+                                        />
+                                        {renderCharacterCounter(formData.copy[fieldKey].length, LIMITS.sa_body)}
+                                        {errors[fieldKey] && <div className="error-message">{errors[fieldKey]}</div>}
+                                    </div>
+                                    {index > 1 && (
+                                        <button 
+                                            className="remove-link" 
+                                            onClick={() => removeField('sa_body', index)}
+                                            aria-label="Remove"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        
+                        {visibleFields.sa_body < 3 && (
+                            <button className="add-link" onClick={() => addField('sa_body')}>
+                                + Add another option
+                            </button>
+                        )}
+                    </div>
+                </>
+            );
+            
+            const renderStep2 = () => (
+                <div>
+                    <h2>Copy & Messaging</h2>
+                    <p className="subheading">Enter your ad copy below. All character limits are enforced before you can proceed.</p>
+                    
+                    {formData.platform === 'Meta' && renderMetaCopy()}
+                    {formData.platform === 'TikTok' && renderTikTokCopy()}
+                    {formData.platform === 'StackAdapt' && renderStackAdaptCopy()}
+                    
+                    <div className="button-group">
+                        <button className="btn btn-secondary" onClick={handleBack}>Back</button>
+                        <button className="btn btn-primary" onClick={handleNext}>Next</button>
+                    </div>
+                </div>
+            );
+            
+            const renderStep3 = () => (
+                <div>
+                    <h2>Creative Upload</h2>
+                    <p className="subheading">Upload your creative assets and assign each one to an ad set and format.</p>
+                    
+                    {uploadError && <div className="toast">{uploadError}</div>}
+                    
+                    <div 
+                        className="upload-zone"
+                        onClick={() => fileInputRef.current?.click()}
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                    >
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            accept=".jpg,.jpeg,.png,.gif,.mp4,.mov"
+                            onChange={handleFileSelect}
+                            style={{ display: 'none' }}
+                        />
+                        <div className="upload-icon">
+                            <CloudUploadIcon />
+                        </div>
+                        <div className="upload-text">Drag and drop files here or click to browse</div>
+                        <div className="upload-subtext">Accepted: JPG, PNG, GIF, MP4, MOV — Max 100MB per file</div>
+                    </div>
+                    
+                    {errors.files && <div className="error-message" style={{marginTop: '12px'}}>{errors.files}</div>}
+                    
+                    {formData.files.map((fileObj, index) => (
+                        <div key={index} className="file-card">
+                            <div className="file-card-header">
+                                <div className={`file-thumbnail ${fileObj.file.type.startsWith('video/') ? 'video' : ''}`}>
+                                    {fileObj.file.type.startsWith('video/') ? (
+                                        <>
+                                            <VideoIcon />
+                                            <div style={{position: 'absolute', bottom: '4px', right: '4px', fontSize: '10px', color: 'white', background: 'rgba(0,0,0,0.7)', padding: '2px 4px', borderRadius: '2px'}}>
+                                                {fileObj.file.name.split('.').pop().toUpperCase()}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <img src={fileObj.preview} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                                    )}
+                                </div>
+                                <div className="file-info">
+                                    <div className="file-name">{fileObj.file.name}</div>
+                                    <div className="file-size">
+                                        {(fileObj.file.size / (1024 * 1024)).toFixed(2)} MB
+                                    </div>
+                                </div>
+                                <button 
+                                    className="btn-remove" 
+                                    onClick={() => removeFile(index)}
+                                    aria-label="Remove file"
+                                >
+                                    <CloseIcon />
+                                </button>
+                            </div>
+                            
+                            <div className="file-fields">
+                                <div className={`form-group ${errors[`file_${index}_adset`] ? 'error' : ''}`}>
+                                    <label className="required">Ad Set Name</label>
+                                    <input
+                                        type="text"
+                                        value={fileObj.adset}
+                                        onChange={(e) => updateFileField(index, 'adset', e.target.value)}
+                                        placeholder="e.g. Retargeting — Warm Audience"
+                                    />
+                                    {errors[`file_${index}_adset`] && (
+                                        <div className="error-message">{errors[`file_${index}_adset`]}</div>
+                                    )}
+                                </div>
+                                
+                                <div className={`form-group ${errors[`file_${index}_format`] ? 'error' : ''}`}>
+                                    <label className="required">Format</label>
+                                    <select
+                                        value={fileObj.format}
+                                        onChange={(e) => updateFileField(index, 'format', e.target.value)}
+                                    >
+                                        <option value="">Select format</option>
+                                        {PLATFORM_FORMATS[formData.platform]?.map(f => (
+                                            <option key={f} value={f}>{f}</option>
+                                        ))}
+                                    </select>
+                                    {errors[`file_${index}_format`] && (
+                                        <div className="error-message">{errors[`file_${index}_format`]}</div>
+                                    )}
+                                    {fileObj.format && FORMAT_SPECS[fileObj.format] && (
+                                        <div className="format-info">{FORMAT_SPECS[fileObj.format]}</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    
+                    <div className="button-group">
+                        <button className="btn btn-secondary" onClick={handleBack}>Back</button>
+                        <button className="btn btn-primary" onClick={handleNext}>Next</button>
+                    </div>
+                </div>
+            );
+            
+            const renderStep4 = () => {
+                const [confirmed, setConfirmed] = useState(false);
+                
+                const getCopyFields = () => {
+                    const fields = [];
+                    if (formData.platform === 'Meta') {
+                        for (let i = 1; i <= visibleFields.primary_text; i++) {
+                            const val = formData.copy[`primary_text_${i}`];
+                            if (val) fields.push({ label: `Primary Text ${i}`, value: val, count: `${val.length}/${LIMITS.primary_text}` });
+                        }
+                        for (let i = 1; i <= visibleFields.headline; i++) {
+                            const val = formData.copy[`headline_${i}`];
+                            if (val) fields.push({ label: `Headline ${i}`, value: val, count: `${val.length}/${LIMITS.headline}` });
+                        }
+                        if (formData.copy.link_description) {
+                            fields.push({ label: 'Link Description', value: formData.copy.link_description, count: `${formData.copy.link_description.length}/${LIMITS.link_description}` });
+                        }
+                    } else if (formData.platform === 'TikTok') {
+                        for (let i = 1; i <= visibleFields.ad_text; i++) {
+                            const val = formData.copy[`ad_text_${i}`];
+                            if (val) fields.push({ label: `Ad Text ${i}`, value: val, count: `${val.length}/${LIMITS.ad_text}` });
+                        }
+                        if (formData.copy.display_name) {
+                            fields.push({ label: 'Display Name', value: formData.copy.display_name, count: `${formData.copy.display_name.length}/${LIMITS.display_name}` });
+                        }
+                    } else if (formData.platform === 'StackAdapt') {
+                        for (let i = 1; i <= visibleFields.sa_headline; i++) {
+                            const val = formData.copy[`sa_headline_${i}`];
+                            if (val) fields.push({ label: `Headline ${i}`, value: val, count: `${val.length}/${LIMITS.sa_headline}` });
+                        }
+                        for (let i = 1; i <= visibleFields.sa_body; i++) {
+                            const val = formData.copy[`sa_body_${i}`];
+                            if (val) fields.push({ label: `Body Text ${i}`, value: val, count: `${val.length}/${LIMITS.sa_body}` });
+                        }
+                    }
+                    return fields;
+                };
+                
+                return (
+                    <div>
+                        <h2>Review & Submit</h2>
+                        <p className="subheading">Please review everything carefully before submitting. Once submitted your account manager will be notified.</p>
+                        
+                        {submitError && (
+                            <div className="error-banner">
+                                <span className="error-banner-text">{submitError}</span>
+                                <button className="btn-dismiss" onClick={() => setSubmitError(null)}>×</button>
+                            </div>
+                        )}
+                        
+                        <div className="section-card review-section">
+                            <button className="review-edit" onClick={() => setCurrentStep(1)}>Edit</button>
+                            <h3>Campaign Details</h3>
+                            <div className="review-row">
+                                <span className="review-label">Name</span>
+                                <span className="review-value">{formData.name}</span>
+                            </div>
+                            <div className="review-row">
+                                <span className="review-label">Email</span>
+                                <span className="review-value">{formData.email}</span>
+                            </div>
+                            <div className="review-row">
+                                <span className="review-label">Campaign Name</span>
+                                <span className="review-value">{formData.campaignName}</span>
+                            </div>
+                            <div className="review-row">
+                                <span className="review-label">Platform</span>
+                                <span className="review-value">{formData.platform}</span>
+                            </div>
+                            <div className="review-row">
+                                <span className="review-label">Start Date</span>
+                                <span className="review-value">{formData.startDate}</span>
+                            </div>
+                            <div className="review-row">
+                                <span className="review-label">End Date</span>
+                                <span className="review-value">{formData.endDate}</span>
+                            </div>
+                            <div className="review-row">
+                                <span className="review-label">Budget</span>
+                                <span className="review-value">NZD ${formData.budget}</span>
+                            </div>
+                            <div className="review-row">
+                                <span className="review-label">Destination URL</span>
+                                <span className="review-value">{formData.destinationUrl}</span>
+                            </div>
+                            <div className="review-row">
+                                <span className="review-label">CTA Button</span>
+                                <span className="review-value">{formData.cta}</span>
+                            </div>
+                        </div>
+                        
+                        <div className="section-card review-section">
+                            <button className="review-edit" onClick={() => setCurrentStep(2)}>Edit</button>
+                            <h3>Copy & Messaging</h3>
+                            {getCopyFields().map((field, idx) => (
+                                <div key={idx} className="copy-item">
+                                    <div className="copy-label">{field.label}</div>
+                                    <div className="copy-text">{field.value}</div>
+                                    <span className="copy-count">({field.count})</span>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <div className="section-card review-section">
+                            <button className="review-edit" onClick={() => setCurrentStep(3)}>Edit</button>
+                            <h3>Creative Assets</h3>
+                            {formData.files.map((file, idx) => (
+                                <div key={idx} className="asset-row">
+                                    <div className="asset-thumb" style={{background: file.file.type.startsWith('video/') ? '#333' : 'var(--section-bg)'}}>
+                                        {file.file.type.startsWith('video/') ? (
+                                            <VideoIcon />
+                                        ) : (
+                                            <img src={file.preview} alt="" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}} />
+                                        )}
+                                    </div>
+                                    <div className="asset-details">
+                                        <div className="asset-name">{file.file.name}</div>
+                                        <div className="asset-meta">{file.adset} • {file.format}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <div className="checkbox-group">
+                            <input
+                                type="checkbox"
+                                id="confirm"
+                                checked={confirmed}
+                                onChange={(e) => setConfirmed(e.target.checked)}
+                            />
+                            <label htmlFor="confirm">
+                                I confirm that all copy and creative assets submitted are approved for use and I have the right to use them.
+                            </label>
+                        </div>
+                        
+                        <button 
+                            className="btn btn-primary btn-full" 
+                            onClick={handleSubmit}
+                            disabled={!confirmed || submitting}
+                        >
+                            Submit Campaign
+                        </button>
+                        
+                        <div className="button-group" style={{justifyContent: 'flex-start', marginTop: '16px'}}>
+                            <button className="btn btn-secondary" onClick={handleBack}>Back</button>
+                        </div>
+                    </div>
+                );
+            };
+            
+            // Render states
+            if (authState === 'loading') {
+                return (
+                    <div className="centered-state">
+                        <div className="spinner"></div>
+                        <div className="loading-text">Loading your submission portal...</div>
+                    </div>
+                );
+            }
+            
+            if (authState === 'invalid') {
+                return (
+                    <div className="centered-state">
+                        <div className="logo-placeholder">SA</div>
+                        <h1 className="invalid-heading">Link Not Valid</h1>
+                        <p className="invalid-text">
+                            This link is not valid or has expired. Please contact your account manager to receive a new submission link.
+                        </p>
+                    </div>
+                );
+            }
+            
+            if (submitted) {
+                return (
+                    <div className="centered-state">
+                        <div className="success-screen">
+                            <SuccessCheckIcon />
+                            <h1 className="success-heading">Submission Received!</h1>
+                            <p className="success-text">
+                                Thank you. Your account manager has been notified and will review your submission shortly. You can now close this tab.
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="page-container">
+                    {submitting && (
+                        <div className="overlay">
+                            <div className="spinner"></div>
+                            <div className="overlay-text">Submitting your campaign... please don't close this tab</div>
+                        </div>
+                    )}
+                    
+                    <div className="form-card">
+                        {renderProgressBar()}
+                        
+                        {currentStep === 1 && renderStep1()}
+                        {currentStep === 2 && renderStep2()}
+                        {currentStep === 3 && renderStep3()}
+                        {currentStep === 4 && renderStep4()}
+                    </div>
+                </div>
+            );
+        }
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
