@@ -986,7 +986,7 @@
                 setToken(urlToken);
                 
                 // Simulate API call for token validation
-                fetch(`https://REPLACE_N8N_BASE_URL/webhook/validate-token?token=${urlToken}`)
+                fetch(`https://primary-production-cd72.up.railway.app/webhook/validate-token?token=${urlToken}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.valid) {
@@ -1391,7 +1391,7 @@
                         }
                     }
                     
-                    const response = await fetch('https://REPLACE_N8N_BASE_URL/webhook/ad-submission', {
+                    const response = await fetch('https://primary-production-cd72.up.railway.app/webhook/ad-submission', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
